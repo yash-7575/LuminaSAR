@@ -1,0 +1,19 @@
+SUSPICIOUS ACTIVITY REPORT — SMURFING PATTERN
+
+SUBJECT INFORMATION:
+[Customer Name], holder of account [Account Number] at [Bank Name], stated occupation: [Occupation], stated income: ₹[Stated Income], customer tenure: [Customer Since].
+
+SUSPICIOUS ACTIVITY DESCRIPTION:
+The subject's account has received [Number] deposits from [Unique Sources] distinct external accounts over a [Time Span] day period, aggregating ₹[Total Amount]. The deposits exhibit characteristics consistent with "smurfing" — a money laundering technique where large sums are broken into smaller deposits from multiple sources to avoid detection.
+
+Each individual deposit ranged from ₹5,000 to ₹30,000, keeping individual amounts below suspicion thresholds. However, the sheer volume of deposits from diverse sources, averaging [Transactions Per Day] per day, creates an aggregate movement of funds that is inconsistent with the subject's declared income and occupation.
+
+SUPPORTING EVIDENCE:
+- Fan-in analysis: [Unique Sources] unique incoming sources
+- No apparent business relationship between depositing accounts
+- Individual amounts below ₹50,000 threshold but aggregate exceeds ₹[Total Amount]
+- Transaction frequency of [Transactions Per Day] per day is anomalous
+- Volume inconsistent with stated income of ₹[Stated Income]
+
+ANALYST ASSESSMENT:
+The smurfing pattern observed strongly indicates coordination among multiple depositors to funnel money into the subject's account while evading detection thresholds. This activity should be reported to FIU-IND as it constitutes reasonable grounds for suspicion of money laundering under the PMLA, 2002.

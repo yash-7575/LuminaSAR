@@ -1,0 +1,19 @@
+SUSPICIOUS ACTIVITY REPORT — INTEGRATION PATTERN
+
+SUBJECT INFORMATION:
+[Customer Name], account [Account Number], [Occupation], customer from [Customer Since], declared annual income: ₹[Stated Income].
+
+SUSPICIOUS ACTIVITY DESCRIPTION:
+The subject has executed [Number] high-value transactions totaling ₹[Total Amount] within [Time Span] days. These transactions appear designed to reintroduce potentially illicit funds into the legitimate financial system — a process known as "integration," the final stage of money laundering.
+
+The transactions involve large wire transfers and RTGS payments to and from business entities, with individual amounts ranging from ₹5,00,000 to ₹50,00,000. The total throughput of ₹[Total Amount] is grossly disproportionate to the subject's stated income, and the business justification for these large-value transfers is not apparent from account documentation.
+
+SUPPORTING EVIDENCE:
+- High-value transfers averaging ₹[Average Amount] per transaction
+- Total flow of ₹[Total Amount] within [Time Span] days
+- [Unique Destinations] outbound counterparties
+- Stated income of ₹[Stated Income] is insufficient to justify the transaction volumes
+- Transaction types include RTGS and wire transfers typical of integration schemes
+
+ANALYST ASSESSMENT:
+The activity pattern is consistent with the integration phase of money laundering where processed funds are reintroduced into the economy through seemingly legitimate business transactions. The significant disparity between stated income and transaction volumes warrants filing an STR with FIU-IND. Recommend freezing the account pending investigation under Section 17 of the PMLA, 2002.

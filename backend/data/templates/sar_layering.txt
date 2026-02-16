@@ -1,0 +1,19 @@
+SUSPICIOUS ACTIVITY REPORT — LAYERING PATTERN
+
+SUBJECT INFORMATION:
+[Customer Name], account number [Account Number], [Occupation], customer since [Customer Since], declared income ₹[Stated Income].
+
+SUSPICIOUS ACTIVITY DESCRIPTION:
+Analysis of the subject's account activity between [Start Date] and [End Date] reveals a complex layering scheme involving rapid movement of funds through multiple intermediary accounts. A total of [Number] transactions aggregating ₹[Total Amount] were executed within a period of [Time Span] days.
+
+The transaction pattern shows funds being rapidly moved between [Unique Sources] source accounts and [Unique Destinations] destination accounts. The velocity of [Transactions Per Day] transactions per day far exceeds normal business activity for the subject's stated occupation. The transactions follow a cascading pattern characteristic of the placement and layering stages of money laundering, where illicit funds are distanced from their source through multiple intermediate transfers.
+
+SUPPORTING EVIDENCE:
+- Transaction network analysis reveals hub-and-spoke topology with centralized flow patterns
+- Average per-transaction value of ₹[Average Amount] suggests intentional fragmentation
+- Multiple round-trips identified between counterparty accounts
+- Velocity analysis indicates HIGH risk classification
+- Total throughput of ₹[Total Amount] through the account
+
+ANALYST ASSESSMENT:
+The observed layering activity constitutes reasonable grounds for suspicion under the PMLA. The rapid multi-hop fund transfers through numerous counterparties are consistent with money laundering typologies documented by the Financial Action Task Force (FATF). An STR should be filed with FIU-IND and the subject's accounts placed under enhanced surveillance.

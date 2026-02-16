@@ -1,0 +1,18 @@
+SUSPICIOUS ACTIVITY REPORT — STRUCTURING PATTERN
+
+SUBJECT INFORMATION:
+[Customer Name], account holder at [Bank Name] with account number [Account Number], employed as [Occupation], has been a customer since [Customer Since]. The subject's stated annual income is ₹[Stated Income].
+
+SUSPICIOUS ACTIVITY DESCRIPTION:
+Between [Start Date] and [End Date], the subject conducted [Number] cash deposits ranging from ₹42,000 to ₹49,900 each, maintaining amounts consistently below the ₹50,000 Cash Transaction Report (CTR) threshold mandated by the Prevention of Money Laundering Act (PMLA). The aggregate value of these transactions was ₹[Total Amount], which is significantly disproportionate to the subject's stated income of ₹[Stated Income].
+
+The transactions exhibited a clear structuring pattern, with [Near Threshold Count] out of [Total Transactions] transactions (approximately [Percentage]%) falling within the ₹45,000-₹49,900 range. This deliberate avoidance of the reporting threshold is a hallmark of structuring, also known as "smurfing," and is indicative of potential money laundering activity under Section 12 of the PMLA, 2002.
+
+SUPPORTING EVIDENCE:
+- Transaction velocity analysis reveals [Transactions Per Day] transactions per day over a [Time Span] day period
+- Volume analysis shows total throughput of ₹[Total Amount] averaging ₹[Average Amount] per transaction
+- Network analysis identified [Unique Sources] unique source accounts and [Unique Destinations] unique destination accounts
+- Structuring likelihood score: [Structuring Score]
+
+ANALYST ASSESSMENT:
+The pattern of transactions strongly suggests deliberate structuring to evade CTR requirements. The activity warrants immediate filing of a Suspicious Transaction Report (STR) with the Financial Intelligence Unit - India (FIU-IND). Recommended actions include enhanced monitoring of the account and verification of source of funds.
