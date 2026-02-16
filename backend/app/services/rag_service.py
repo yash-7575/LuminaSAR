@@ -1,71 +1,119 @@
-"""RAG Service — Retrieval-Augmented Generation using ChromaDB.
+"""
+Hybrid RAG Service — Chroma Templates + FAISS Historical Similarity
 
-Manages a vector store of SAR templates and regulatory guidelines
-for context-aware narrative generation.
+Combines:
+1. Regulatory template retrieval (ChromaDB)
+2. Historical SAR similarity search (FAISS)
+
+Used in LuminaSAR for grounded, explainable SAR generation.
 """
 
-import chromadb
-from typing import List, Dict
-import logging
 import os
+import logging
+from typing import List, Dict
+
+import chromadb
+import faiss
+import numpy as np
+from sentence_transformers import SentenceTransformer
 
 logger = logging.getLogger("luminasar.rag_service")
 
 
 class RAGService:
-    """Manages ChromaDB vector store for SAR template retrieval."""
-
     def __init__(self, persist_directory: str = "./chroma_db"):
+        # ------------------------
+        # Chroma (Templates)
+        # ------------------------
         self.persist_directory = persist_directory
         self._client = None
         self._collection = None
-        self._embedding_fn = None
+
+        # ------------------------
+        # FAISS (Historical SARs)
+        # ------------------------
+        self.faiss_index = None
+        self.faiss_texts = None
+
+        # Shared embedding model
+        self.embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+
+        self._load_faiss()
+
+    # ======================================================
+    # FAISS SECTION
+    # ======================================================
+
+    def _load_faiss(self):
+        """Load FAISS index + stored texts."""
+        try:
+            base_path = os.path.join(os.getcwd(), "data", "rag")
+            index_path = os.path.join(base_path, "rag_fast.faiss")
+            texts_path = os.path.join(base_path, "rag_texts_fast.npy")
+
+            if os.path.exists(index_path) and os.path.exists(texts_path):
+                self.faiss_index = faiss.read_index(index_path)
+                self.faiss_texts = np.load(texts_path, allow_pickle=True)
+                logger.info(
+                    f"✅ FAISS loaded with {self.faiss_index.ntotal} vectors"
+                )
+            else:
+                logger.warning("⚠️ FAISS files not found. Similarity disabled.")
+
+        except Exception as e:
+            logger.error(f"❌ FAISS loading failed: {e}")
+
+    def retrieve_similar_cases(self, query: str, top_k: int = 3) -> List[str]:
+        """Retrieve similar historical SAR cases from FAISS."""
+        if not self.faiss_index:
+            return []
+
+        try:
+            query_embedding = self.embedding_model.encode([query])
+            distances, indices = self.faiss_index.search(
+                query_embedding.astype("float32"), top_k
+            )
+
+            results = []
+            for idx in indices[0]:
+                if idx < len(self.faiss_texts):
+                    results.append(self.faiss_texts[idx])
+
+            return results
+
+        except Exception as e:
+            logger.error(f"FAISS retrieval failed: {e}")
+            return []
+
+    # ======================================================
+    # CHROMA TEMPLATE SECTION
+    # ======================================================
 
     def _get_client(self):
-        """Lazy-initialize ChromaDB client."""
         if self._client is None:
-            self._client = chromadb.PersistentClient(path=self.persist_directory)
+            self._client = chromadb.PersistentClient(
+                path=self.persist_directory
+            )
         return self._client
 
     def _get_collection(self):
-        """Lazy-initialize collection."""
         if self._collection is None:
             client = self._get_client()
             self._collection = client.get_or_create_collection(
                 name="sar_templates",
-                metadata={"description": "SAR templates and regulatory guidelines"},
+                metadata={
+                    "description": "SAR templates and regulatory guidelines"
+                },
             )
         return self._collection
 
-    def _get_embedding_fn(self):
-        """Lazy-initialize sentence transformer."""
-        if self._embedding_fn is None:
-            try:
-                from sentence_transformers import SentenceTransformer
-
-                self._embedding_fn = SentenceTransformer("all-MiniLM-L6-v2")
-                logger.info("✅ Loaded sentence-transformers (all-MiniLM-L6-v2)")
-            except ImportError:
-                logger.warning(
-                    "⚠️ sentence-transformers not installed, using basic embeddings"
-                )
-                self._embedding_fn = None
-        return self._embedding_fn
-
     def load_templates(self, templates_dir: str) -> int:
-        """Load SAR templates from text files into ChromaDB.
-
-        Args:
-            templates_dir: Path to directory containing .txt template files
-
-        Returns:
-            Number of templates loaded
-        """
+        """Load template text files into Chroma."""
         from pathlib import Path
 
         templates_path = Path(templates_dir)
         if not templates_path.exists():
-            logger.warning(f"Templates directory not found: {templates_dir}")
+            logger.warning("Templates directory not found.")
             return 0
 
         documents = []
@@ -80,98 +128,58 @@ class RAGService:
                         continue
 
                     documents.append(content)
-
-                    # Extract typology from filename
-                    parts = file_path.stem.split("_")
-                    typology = parts[1] if len(parts) > 1 else "general"
-
-                    metadatas.append(
-                        {
-                            "typology": typology,
-                            "source": file_path.name,
-                        }
-                    )
+                    metadatas.append({"source": file_path.name})
                     ids.append(f"template_{i}")
+
             except Exception as e:
-                logger.warning(f"Failed to load {file_path}: {e}")
+                logger.warning(f"Failed to load template: {e}")
 
         if documents:
             collection = self._get_collection()
-            embedding_model = self._get_embedding_fn()
+            embeddings = self.embedding_model.encode(documents).tolist()
 
-            if embedding_model:
-                embeddings = embedding_model.encode(documents).tolist()
-                collection.upsert(
-                    documents=documents,
-                    embeddings=embeddings,
-                    metadatas=metadatas,
-                    ids=ids,
-                )
-            else:
-                collection.upsert(
-                    documents=documents,
-                    metadatas=metadatas,
-                    ids=ids,
-                )
+            collection.upsert(
+                documents=documents,
+                embeddings=embeddings,
+                metadatas=metadatas,
+                ids=ids,
+            )
 
-            logger.info(f"✅ Loaded {len(documents)} templates into ChromaDB")
+            logger.info(f"✅ Loaded {len(documents)} templates into Chroma")
 
         return len(documents)
 
-    def retrieve_templates(self, typologies: List[str], top_k: int = 3) -> List[Dict]:
-        """Retrieve relevant SAR templates based on detected typologies.
-
-        Args:
-            typologies: List of detected money laundering typologies
-            top_k: Number of templates to retrieve
-
-        Returns:
-            List of dictionaries containing template text and metadata
-        """
+    def retrieve_templates(
+        self, typologies: List[str], top_k: int = 3
+    ) -> List[Dict]:
+        """Retrieve structural templates from Chroma."""
         try:
             collection = self._get_collection()
 
             if collection.count() == 0:
-                logger.warning(
-                    "ChromaDB collection is empty, returning default template"
-                )
+                logger.warning("⚠️ Chroma empty — returning default template")
                 return [self._get_default_template()]
 
-            query_text = f"SAR narrative for {', '.join(typologies)} money laundering suspicious activity patterns"
-            embedding_model = self._get_embedding_fn()
+            query_text = (
+                f"SAR narrative template for {', '.join(typologies)} "
+                f"money laundering suspicious activity"
+            )
 
-            if embedding_model:
-                query_embedding = embedding_model.encode([query_text]).tolist()
-                results = collection.query(
-                    query_embeddings=query_embedding,
-                    n_results=min(top_k, collection.count()),
-                )
-            else:
-                results = collection.query(
-                    query_texts=[query_text],
-                    n_results=min(top_k, collection.count()),
-                )
+            query_embedding = self.embedding_model.encode([query_text]).tolist()
+
+            results = collection.query(
+                query_embeddings=query_embedding,
+                n_results=min(top_k, collection.count()),
+            )
 
             retrieved = []
             if results and results["documents"]:
                 for i, docs in enumerate(results["documents"]):
                     for j, doc in enumerate(docs):
-                        meta = (
-                            results["metadatas"][i][j]
-                            if results.get("metadatas")
-                            else {}
-                        )
-                        dist = (
-                            results["distances"][i][j]
-                            if results.get("distances")
-                            else None
-                        )
                         retrieved.append(
                             {
                                 "template": doc,
-                                "typology": meta.get("typology", "unknown"),
-                                "source": meta.get("source", "unknown"),
-                                "distance": dist,
+                                "source": results["metadatas"][i][j]["source"],
                             }
                         )
 
@@ -181,25 +189,35 @@ class RAGService:
             logger.error(f"Template retrieval failed: {e}")
             return [self._get_default_template()]
 
-    def _get_default_template(self) -> dict:
-        """Fallback template when ChromaDB is empty."""
+    def _get_default_template(self):
         return {
-            "template": """SUSPICIOUS ACTIVITY REPORT
-
-SUBJECT INFORMATION:
-The subject is a banking customer whose account activity has triggered suspicious activity monitoring alerts.
-
-SUSPICIOUS ACTIVITY DESCRIPTION:
-Analysis of the subject's transaction history reveals patterns consistent with potential money laundering activity. The transactions show unusual patterns in terms of velocity, volume, and counterparty relationships that deviate significantly from the customer's established profile.
-
-SUPPORTING EVIDENCE:
-- Transaction velocity and volume analysis
-- Network analysis of counterparty relationships
-- Pattern matching against known typologies
-
-ANALYST ASSESSMENT:
-Based on the evidence gathered, the activity warrants filing a Suspicious Activity Report with the Financial Intelligence Unit.""",
-            "typology": "general",
+            "template": "Standard SAR regulatory structure template.",
             "source": "default_template",
-            "distance": None,
+        }
+
+    # ======================================================
+    # HYBRID RETRIEVAL
+    # ======================================================
+
+    def retrieve_hybrid_context(
+        self, typologies: List[str], patterns: Dict
+    ) -> Dict:
+        """
+        Combines:
+        - Chroma structural templates
+        - FAISS similar historical SARs
+        """
+
+        templates = self.retrieve_templates(typologies)
+
+        query = (
+            f"Risk score {patterns.get('risk_score', 0)}, "
+            f"typologies: {', '.join(typologies)}"
+        )
+
+        similar_cases = self.retrieve_similar_cases(query)
+
+        return {
+            "templates": templates,
+            "similar_cases": similar_cases,
         }
