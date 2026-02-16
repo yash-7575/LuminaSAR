@@ -13,6 +13,7 @@ const apiClient = axios.create({
 export interface GenerateRequest {
     case_id: string
     force_regenerate?: boolean
+    jurisdiction?: string
 }
 
 export interface GenerateResponse {
@@ -76,6 +77,12 @@ export interface DashboardStats {
     cost_savings_lakhs: number
 }
 
+export interface AppConfig {
+    jurisdiction: string
+    deployment_env: string
+    supported_jurisdictions: string[]
+}
+
 export const api = {
     // Health check
     health: async () => {
@@ -118,6 +125,12 @@ export const api = {
     // Recent Cases
     getRecentCases: async (): Promise<SARCase[]> => {
         const response = await apiClient.get('/api/v1/sar/')
+        return response.data
+    },
+
+    // Config
+    getConfig: async (): Promise<AppConfig> => {
+        const response = await apiClient.get('/api/v1/config/')
         return response.data
     },
 }

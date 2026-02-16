@@ -17,6 +17,7 @@ from app.services.rag_service import RAGService
 from app.services.llm_service import LLMService
 from app.services.audit_logger import AuditLogger
 from app.services.validator import NarrativeValidator
+from app.services.graph_service import KnowledgeGraphService
 from app.config import get_settings
 
 logger = logging.getLogger("luminasar.workflow")
@@ -39,6 +40,10 @@ class SARState(TypedDict):
     narrative_id: Optional[str]
     risk_score: float
     audit_steps: int
+    graph_evidence: Optional[str]
+    graph_insight: Optional[str]
+    jurisdiction: str
+    duration: int
 
 
 # Initialize services (singletons)
@@ -46,20 +51,27 @@ pattern_detector = PatternDetector()
 rag_service = RAGService(persist_directory=settings.chroma_persist_dir)
 llm_service = LLMService()
 validator = NarrativeValidator()
+graph_service = KnowledgeGraphService()
 
 
-async def run_sar_workflow(case_id: str, customer_id: str, db) -> Dict:
+async def run_sar_workflow(
+    case_id: str, customer_id: str, db, jurisdiction: Optional[str] = None
+) -> Dict:
     """Run the complete SAR generation workflow.
 
     Args:
         case_id: UUID of the SAR case
         customer_id: UUID of the customer
         db: SQLAlchemy database session
+        jurisdiction: Optional jurisdiction override (falls back to settings)
 
     Returns:
         Dictionary with narrative_id, narrative text, risk_score, typologies, audit_steps
     """
-    logger.info(f"🚀 Starting SAR workflow for case {case_id}")
+    effective_jurisdiction = jurisdiction or settings.jurisdiction
+    logger.info(
+        f"🚀 Starting SAR workflow for case {case_id} (jurisdiction={effective_jurisdiction})"
+    )
     start_time = time.time()
     audit_logger = AuditLogger()
 
@@ -77,42 +89,52 @@ async def run_sar_workflow(case_id: str, customer_id: str, db) -> Dict:
         "narrative_id": None,
         "risk_score": 0.0,
         "audit_steps": 0,
+        "graph_evidence": "",
+        "graph_insight": "",
+        "jurisdiction": effective_jurisdiction,
+        "duration": 0,
     }
 
     # === STEP 1: Fetch Data ===
-    logger.info("📥 Step 1: Fetching data...")
+    logger.info(f"[{case_id}] 📥 Step 1: Fetching data...")
     state = _fetch_data(state, db, audit_logger)
     if state["error"]:
         raise Exception(state["error"])
 
     # === STEP 2: Analyze Patterns ===
-    logger.info("🔍 Step 2: Analyzing patterns...")
+    logger.info(f"[{case_id}] 🔍 Step 2: Analyzing patterns...")
     state = _analyze_patterns(state, audit_logger)
     if state["error"]:
         raise Exception(state["error"])
 
     # === STEP 3: Retrieve Templates ===
-    logger.info("📚 Step 3: Retrieving templates...")
+    logger.info(f"[{case_id}] 📚 Step 3: Retrieving templates...")
     state = _retrieve_templates(state, audit_logger)
 
+    # === STEP 3.5: Enrich with Knowledge Graph ===
+    logger.info(f"[{case_id}] 🕸️ Step 3.5: Enriching with Knowledge Graph...")
+    state = _enrich_with_knowledge_graph(state, audit_logger)
+
     # === STEP 4: Generate Narrative ===
-    logger.info("🤖 Step 4: Generating narrative...")
+    logger.info(f"[{case_id}] 🤖 Step 4: Generating narrative...")
     state = await _generate_narrative(state, audit_logger)
     if state["error"]:
         raise Exception(state["error"])
 
     # === STEP 5: Validate ===
-    logger.info("✅ Step 5: Validating narrative...")
+    logger.info(f"[{case_id}] ✅ Step 5: Validating narrative...")
     state = _validate(state, audit_logger)
 
+    # Calculate actual generation time before saving
+    state["duration"] = int(time.time() - start_time)
+
     # === STEP 6: Save Results ===
-    logger.info("💾 Step 6: Saving results...")
+    logger.info(f"[{case_id}] 💾 Step 6: Saving results (duration={state['duration']}s)...")
     state = _save_results(state, db, audit_logger)
     if state["error"]:
         raise Exception(state["error"])
 
-    generation_time = int(time.time() - start_time)
-    logger.info(f"🏁 Workflow complete in {generation_time}s")
+    logger.info(f"[{case_id}] 🏁 Workflow complete in {state['duration']}s")
 
     return {
         "narrative_id": state["narrative_id"],
@@ -120,6 +142,7 @@ async def run_sar_workflow(case_id: str, customer_id: str, db) -> Dict:
         "risk_score": state["risk_score"],
         "typologies": state["typologies"],
         "audit_steps": len(audit_logger.logs),
+        "generation_time_seconds": state["duration"],
     }
 
 
@@ -251,15 +274,67 @@ def _retrieve_templates(state: SARState, audit_logger: AuditLogger) -> SARState:
     return state
 
 
+def _enrich_with_knowledge_graph(state: SARState, audit_logger: AuditLogger) -> SARState:
+    """Step 3.5: Enrich detected typologies with Knowledge Graph evidence."""
+    try:
+        jurisdiction = state["jurisdiction"]
+        graph_data = graph_service.get_typology_context(
+            state["typologies"], jurisdiction=jurisdiction
+        )
+
+        state["graph_evidence"] = graph_data["evidence_text"]
+        state["graph_insight"] = graph_data["insight_text"]
+
+        # Network-based relationship analysis using transaction data
+        account_num = state["customer_data"].get("account_number", "unknown")
+        relationship_result = graph_service.analyze_relationships(
+            account_num, transactions=state["transactions"]
+        )
+        state["graph_insight"] += f" {relationship_result['relationship_summary']}"
+
+        audit_logger.log_step(
+            step_name="enrich_with_knowledge_graph",
+            data_sources={
+                "typologies": state["typologies"],
+                "jurisdiction": jurisdiction,
+                "graph_db": "Neo4j (simulated with networkx)",
+                "transaction_count": len(state["transactions"]),
+            },
+            reasoning={
+                "action": "Mapped flat typologies to formal jurisdictional advisories and performed network graph analysis",
+                "advisories_matched": len(graph_data.get("advisories", [])),
+                "centrality_score": relationship_result.get("centrality_score", 0),
+                "cycles_detected": relationship_result.get("cycles_detected", 0),
+                "risk_amplification": relationship_result.get("risk_amplification_factor", 1.0),
+                "confidence": graph_data.get("confidence_score", 0.3),
+            },
+            outputs={
+                "graph_mapped": len(state["typologies"]) > 0,
+                "risk_amplification_factor": relationship_result.get("risk_amplification_factor", 1.0),
+            },
+            confidence=graph_data.get("confidence_score", 0.3),
+        )
+
+    except Exception as e:
+        logger.warning(f"Graph enrichment failed: {e}")
+        state["graph_evidence"] = "Graph service unavailable."
+        state["graph_insight"] = "Defaulting to flat vector analysis."
+
+    return state
+
+
 async def _generate_narrative(state: SARState, audit_logger: AuditLogger) -> SARState:
     """Step 4: Generate SAR narrative with LLM."""
     try:
-        prompt = llm_service.create_sar_prompt(
+        prompt = await llm_service.create_sar_prompt(
             customer_data=state["customer_data"],
             transactions=state["transactions"],
             patterns=state["patterns"],
             templates=state["templates"],
             typologies=state["typologies"],
+            jurisdiction=state["jurisdiction"],
+            graph_evidence=state.get("graph_evidence", "No graph relationships detected."),
+            graph_insight=state.get("graph_insight", "Flat vector search used for typologies."),
         )
 
         narrative = await llm_service.generate_narrative(prompt)
@@ -272,9 +347,10 @@ async def _generate_narrative(state: SARState, audit_logger: AuditLogger) -> SAR
                 "prompt_length_chars": len(prompt),
                 "templates_used": len(state["templates"]),
                 "typologies": state["typologies"],
+                "jurisdiction": state["jurisdiction"],
             },
             reasoning={
-                "generation_method": "grounded_prompt_with_rag",
+                "generation_method": "grounded_prompt_with_rag_and_knowledge_graph",
                 "temperature": 0.3,
                 "grounding_strategy": "All data embedded in prompt, LLM instructed to use only provided data",
             },
@@ -304,6 +380,7 @@ def _validate(state: SARState, audit_logger: AuditLogger) -> SARState:
         llm_validation = llm_service.validate_narrative(
             narrative=state["narrative"],
             source_data={"transactions": state["transactions"]},
+            jurisdiction=state["jurisdiction"],
         )
 
         audit_logger.log_step(
@@ -369,7 +446,7 @@ def _save_results(state: SARState, db, audit_logger: AuditLogger) -> SARState:
         narrative_record = SARNarrative(
             case_id=state["case_id"],
             narrative_text=state["narrative"],
-            generation_time_seconds=0,
+            generation_time_seconds=state["duration"],
         )
         db.add(narrative_record)
         db.flush()

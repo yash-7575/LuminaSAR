@@ -5,6 +5,7 @@ SAR Narrative Generator with Explainable Audit Trail
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import health, sar
+from app.routes import config_routes
 from app.config import get_settings
 import logging
 
@@ -39,6 +40,7 @@ app.add_middleware(
 # Include routers
 app.include_router(health.router, tags=["Health"])
 app.include_router(sar.router, prefix="/api/v1/sar", tags=["SAR Generation"])
+app.include_router(config_routes.router, prefix="/api/v1/config", tags=["Configuration"])
 
 
 @app.on_event("startup")

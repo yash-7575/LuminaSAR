@@ -60,7 +60,10 @@ async def generate_sar(request: GenerateSARRequest, db: Session = Depends(get_db
         # Import workflow
         from app.services.langgraph_workflow import run_sar_workflow
 
-        result = await run_sar_workflow(str(case.case_id), str(case.customer_id), db)
+        result = await run_sar_workflow(
+            str(case.case_id), str(case.customer_id), db,
+            jurisdiction=request.jurisdiction,
+        )
 
         generation_time = int(time.time() - start_time)
 

@@ -1,36 +1,47 @@
 import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../services/api'
-import { Zap, FileSearch, Loader2, CheckCircle, Brain, Database, Shield, Save, AlertCircle } from 'lucide-react'
+import { Zap, FileSearch, Loader2, CheckCircle, Brain, Database, Shield, Save, AlertCircle, Network, Globe } from 'lucide-react'
 
 const PIPELINE_STEPS = [
     { id: 1, name: 'Fetching Data', icon: Database, description: 'Loading customer KYC and transaction records from Supabase' },
     { id: 2, name: 'Analyzing Patterns', icon: FileSearch, description: 'Running ML algorithms: velocity, volume, structuring, network analysis' },
     { id: 3, name: 'Retrieving Templates', icon: Brain, description: 'RAG search in ChromaDB for relevant SAR templates' },
-    { id: 4, name: 'Generating Narrative', icon: Zap, description: 'Ollama llama3.2 generating grounded SAR narrative' },
-    { id: 5, name: 'Validating', icon: Shield, description: 'Cross-checking narrative against source data' },
-    { id: 6, name: 'Saving Results', icon: Save, description: 'Persisting narrative and audit trail to database' },
+    { id: 4, name: 'Knowledge Graph', icon: Network, description: 'Enriching typologies with regulatory advisories and network analysis' },
+    { id: 5, name: 'Generating Narrative', icon: Zap, description: 'Ollama llama3.2 generating grounded SAR narrative' },
+    { id: 6, name: 'Validating', icon: Shield, description: 'Cross-checking narrative against source data' },
+    { id: 7, name: 'Saving Results', icon: Save, description: 'Persisting narrative and audit trail to database' },
 ]
 
 export default function GenerateSAR() {
     const [searchParams] = useSearchParams()
     const [caseId, setCaseId] = useState(searchParams.get('case_id') || '')
+    const [selectedJurisdiction, setSelectedJurisdiction] = useState<string>('')
     const [currentStep, setCurrentStep] = useState(0)
     const navigate = useNavigate()
+
+    // Fetch config (supported jurisdictions)
+    const { data: config } = useQuery({
+        queryKey: ['config'],
+        queryFn: () => api.getConfig(),
+    })
 
     const generateMutation = useMutation({
         mutationFn: async (data: { case_id: string }) => {
             // Simulate step progression during generation
             const stepInterval = setInterval(() => {
-                setCurrentStep(prev => Math.min(prev + 1, 6))
-            }, 3000)
+                setCurrentStep(prev => Math.min(prev + 1, 7))
+            }, 2500)
 
             setCurrentStep(1)
             try {
-                const result = await api.generateSAR(data)
+                const result = await api.generateSAR({
+                    ...data,
+                    jurisdiction: selectedJurisdiction || undefined,
+                })
                 clearInterval(stepInterval)
-                setCurrentStep(6)
+                setCurrentStep(7)
                 return result
             } catch (err) {
                 clearInterval(stepInterval)
@@ -82,6 +93,33 @@ export default function GenerateSAR() {
                        transition-all"
                     />
 
+                    {/* Jurisdiction Selector */}
+                    {config?.supported_jurisdictions && (
+                        <div className="mt-5">
+                            <label className="block text-sm font-medium text-slate-300 mb-2 flex items-center gap-1.5">
+                                <Globe className="w-4 h-4 text-cyan-400" />
+                                Jurisdiction
+                            </label>
+                            <select
+                                value={selectedJurisdiction}
+                                onChange={(e) => setSelectedJurisdiction(e.target.value)}
+                                className="w-full px-4 py-3 bg-slate-800/50 text-white rounded-xl
+                                   border border-slate-700/50 focus:border-cyan-500/50
+                                   focus:ring-2 focus:ring-cyan-500/20 focus:outline-none
+                                   text-sm transition-all cursor-pointer"
+                            >
+                                <option value="">
+                                    Server Default ({config.jurisdiction})
+                                </option>
+                                {config.supported_jurisdictions.map((j) => (
+                                    <option key={j} value={j}>
+                                        {j}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+
                     {generateMutation.isError && (
                         <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-3">
                             <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
@@ -121,13 +159,13 @@ export default function GenerateSAR() {
                         <div className="flex justify-between items-center mb-3">
                             <span className="text-sm text-slate-400">Generation Progress</span>
                             <span className="text-sm font-mono text-cyan-400">
-                                {Math.min(currentStep, 6)}/6 steps
+                                {Math.min(currentStep, 7)}/7 steps
                             </span>
                         </div>
                         <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
                             <div
                                 className="h-full bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full transition-all duration-1000"
-                                style={{ width: `${(Math.min(currentStep, 6) / 6) * 100}%` }}
+                                style={{ width: `${(Math.min(currentStep, 7) / 7) * 100}%` }}
                             />
                         </div>
                     </div>
@@ -143,13 +181,13 @@ export default function GenerateSAR() {
                                 <div
                                     key={step.id}
                                     className={`flex items-center gap-4 p-4 rounded-xl transition-all ${isActive ? 'bg-cyan-500/10 border border-cyan-500/20' :
-                                            isComplete ? 'bg-green-500/5 border border-green-500/10' :
-                                                'bg-slate-800/30 border border-transparent'
+                                        isComplete ? 'bg-green-500/5 border border-green-500/10' :
+                                            'bg-slate-800/30 border border-transparent'
                                         }`}
                                 >
                                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${isComplete ? 'bg-green-500/20' :
-                                            isActive ? 'bg-cyan-500/20' :
-                                                'bg-slate-700/50'
+                                        isActive ? 'bg-cyan-500/20' :
+                                            'bg-slate-700/50'
                                         }`}>
                                         {isComplete ? (
                                             <CheckCircle className="w-5 h-5 text-green-400" />
@@ -161,16 +199,16 @@ export default function GenerateSAR() {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className={`text-sm font-medium ${isActive ? 'text-cyan-400' :
-                                                isComplete ? 'text-green-400' :
-                                                    'text-slate-500'
+                                            isComplete ? 'text-green-400' :
+                                                'text-slate-500'
                                             }`}>
                                             {step.name}
                                         </p>
                                         <p className="text-xs text-slate-500 truncate">{step.description}</p>
                                     </div>
                                     <span className={`text-xs font-mono ${isComplete ? 'text-green-500' :
-                                            isActive ? 'text-cyan-500' :
-                                                'text-slate-600'
+                                        isActive ? 'text-cyan-500' :
+                                            'text-slate-600'
                                         }`}>
                                         {isComplete ? '✓' : isActive ? '...' : `${step.id}`}
                                     </span>

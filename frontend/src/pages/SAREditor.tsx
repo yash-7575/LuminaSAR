@@ -26,6 +26,7 @@ function AuditStepCard({ step, index, isExpanded, onToggle }: {
         fetch_data: '📥',
         analyze_patterns: '🔍',
         retrieve_templates: '📚',
+        enrich_with_knowledge_graph: '🕸️',
         generate_narrative: '🤖',
         validate_narrative: '✅',
         save_results: '💾',
@@ -178,8 +179,8 @@ export default function SAREditor() {
                 <div className="flex gap-3">
                     {audit?.chain_valid !== undefined && (
                         <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium ${audit.chain_valid
-                                ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                                : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                            ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                            : 'bg-red-500/10 text-red-400 border border-red-500/20'
                             }`}>
                             {audit.chain_valid ? <ShieldCheck className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
                             Hash chain {audit.chain_valid ? 'verified' : 'BROKEN'}
@@ -295,8 +296,8 @@ export default function SAREditor() {
                                         )}
                                         <p className="text-xs">
                                             <span className={`px-1.5 py-0.5 rounded ${attr.has_data_reference
-                                                    ? 'bg-green-500/10 text-green-400'
-                                                    : 'bg-yellow-500/10 text-yellow-400'
+                                                ? 'bg-green-500/10 text-green-400'
+                                                : 'bg-yellow-500/10 text-yellow-400'
                                                 }`}>
                                                 {attr.has_data_reference ? '✓ Data-backed' : '⚠ No direct data reference'}
                                             </span>

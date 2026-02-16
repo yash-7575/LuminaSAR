@@ -2,6 +2,10 @@
 
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+from typing import Literal
+
+
+SUPPORTED_JURISDICTIONS = ["IN", "US", "UK", "EU", "SG", "HK", "UAE", "AU"]
 
 
 class Settings(BaseSettings):
@@ -22,6 +26,10 @@ class Settings(BaseSettings):
 
     # ChromaDB
     chroma_persist_dir: str = "./chroma_db"
+
+    # Deployment & Jurisdiction
+    deployment_env: str = "cloud"  # cloud, on-prem, hybrid
+    jurisdiction: Literal["IN", "US", "UK", "EU", "SG", "HK", "UAE", "AU"] = "IN"
 
     # App
     app_name: str = "LuminaSAR"

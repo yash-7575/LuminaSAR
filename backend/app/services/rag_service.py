@@ -4,12 +4,19 @@ Manages a vector store of SAR templates and regulatory guidelines
 for context-aware narrative generation.
 """
 
-import chromadb
 from typing import List, Dict
 import logging
 import os
 
 logger = logging.getLogger("luminasar.rag_service")
+
+try:
+    import chromadb
+
+    HAS_CHROMADB = True
+except (ImportError, Exception) as e:
+    HAS_CHROMADB = False
+    logger.warning(f"chromadb unavailable ({e}), RAG will use fallback templates")
 
 
 class RAGService:
@@ -23,14 +30,20 @@ class RAGService:
 
     def _get_client(self):
         """Lazy-initialize ChromaDB client."""
+        if not HAS_CHROMADB:
+            return None
         if self._client is None:
             self._client = chromadb.PersistentClient(path=self.persist_directory)
         return self._client
 
     def _get_collection(self):
         """Lazy-initialize collection."""
+        if not HAS_CHROMADB:
+            return None
         if self._collection is None:
             client = self._get_client()
+            if client is None:
+                return None
             self._collection = client.get_or_create_collection(
                 name="sar_templates",
                 metadata={"description": "SAR templates and regulatory guidelines"},
@@ -131,7 +144,7 @@ class RAGService:
         try:
             collection = self._get_collection()
 
-            if collection.count() == 0:
+            if collection is None or collection.count() == 0:
                 logger.warning(
                     "ChromaDB collection is empty, returning default template"
                 )

@@ -71,3 +71,9 @@ class StatsResponse(BaseModel):
     total_customers: int
     high_risk_cases: int
     cost_savings_lakhs: float
+
+
+class ConfigResponse(BaseModel):
+    jurisdiction: str
+    deployment_env: str
+    supported_jurisdictions: List[str]
