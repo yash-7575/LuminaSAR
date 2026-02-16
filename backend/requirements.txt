@@ -1,0 +1,33 @@
+# Core
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+python-dotenv
+python-multipart
+
+# Database
+sqlalchemy
+psycopg2-binary
+supabase
+
+# AI/ML
+langchain
+langchain-community
+langgraph
+chromadb
+sentence-transformers
+ollama
+
+# Data Processing
+pandas
+numpy
+scikit-learn
+networkx
+
+# Utilities
+httpx
+
+# Testing
+pytest
+pytest-asyncio
