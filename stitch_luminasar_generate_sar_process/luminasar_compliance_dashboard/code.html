@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>LuminaSAR Compliance Dashboard</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Playfair+Display:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff5100",
+                        "background-light": "#ffffff",
+                        "background-dark": "#0a0a0a",
+                        "surface-light": "#f8f6f5",
+                        "surface-dark": "#1a1a1a",
+                        "border-light": "#e0e0e0",
+                        "border-dark": "#333333",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "serif": ["Playfair Display", "serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem", // Sharp corners per Swiss style
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "9999px",
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .swiss-border {
+            border: 1px solid #e5e5e5;
+        }
+
+        .dark .swiss-border {
+            border: 1px solid #333333;
+        }
+
+        .stat-card {
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            border-color: #000;
+            background-color: #fbfbfb;
+        }
+
+        .dark .stat-card:hover {
+            border-color: #fff;
+            background-color: #1a1a1a;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-gray-900 dark:text-gray-100 antialiased min-h-screen flex flex-col md:flex-row overflow-hidden">
+    <!-- Sidebar -->
+    <aside
+        class="w-full md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-black z-20 flex flex-col h-auto md:h-screen">
+        <div class="h-20 flex items-center px-6 border-b border-gray-100 dark:border-gray-800">
+            <h1 class="font-serif text-2xl font-bold tracking-tight text-black dark:text-white">LuminaSAR</h1>
+        </div>
+        <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-1">
+            <a class="group flex items-center gap-3 px-3 py-3 text-xs font-semibold tracking-wider text-primary bg-primary/5 rounded"
+                href="../luminasar_compliance_dashboard/code.html">
+                <span class="material-symbols-outlined text-[20px]">grid_view</span>
+                Dashboard
+            </a>
+            <a class="group flex items-center gap-3 px-3 py-3 text-xs font-medium tracking-wider text-gray-500 dark:text-gray-400 uppercase hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-black dark:hover:text-white rounded transition-colors"
+                href="../luminasar_generate_sar_process/code.html">
+                <span class="material-symbols-outlined text-[20px]">description</span>
+                Generate SAR
+            </a>
+            <a class="group flex items-center gap-3 px-3 py-3 text-xs font-medium tracking-wider text-gray-500 dark:text-gray-400 uppercase hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-black dark:hover:text-white rounded transition-colors"
+                href="../luminasar_narrative_editor_&_audit_trail_1/code.html">
+                <span class="material-symbols-outlined text-[20px]">edit_note</span>
+                Narrative Editor
+            </a>
+            <a class="group flex items-center gap-3 px-3 py-3 text-xs font-medium tracking-wider text-gray-500 dark:text-gray-400 uppercase hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-black dark:hover:text-white rounded transition-colors"
+                href="#">
+                <span class="material-symbols-outlined text-[20px]">gavel</span>
+                Compliance
+            </a>
+            <div class="pt-6 mt-6 border-t border-gray-100 dark:border-gray-800">
+                <a class="group flex items-center gap-3 px-3 py-3 text-xs font-medium tracking-wider text-gray-500 dark:text-gray-400 uppercase hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-black dark:hover:text-white rounded transition-colors"
+                    href="#">
+                    <span class="material-symbols-outlined text-[20px]">settings</span>
+                    Settings
+                </a>
+                <a class="group flex items-center gap-3 px-3 py-3 text-xs font-medium tracking-wider text-gray-500 dark:text-gray-400 uppercase hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-black dark:hover:text-white rounded transition-colors"
+                    href="#">
+                    <span class="material-symbols-outlined text-[20px]">account_circle</span>
+                    Profile
+                </a>
+            </div>
+        </nav>
+        <div class="p-4 border-t border-gray-100 dark:border-gray-800">
+            <div class="flex items-center gap-3">
+                <div
+                    class="h-8 w-8 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xs font-serif font-bold">
+                    JS
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-xs font-bold uppercase text-gray-900 dark:text-gray-100">J. Smith</span>
+                    <span class="text-[10px] text-gray-500 font-mono">ID: 8829-A</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden bg-white dark:bg-black relative">
+        <!-- Top Bar -->
+        <header
+            class="h-20 flex-shrink-0 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-8 bg-white dark:bg-black z-10">
+            <div>
+                <h2 class="font-serif text-3xl text-black dark:text-white">Dashboard</h2>
+                <p class="text-xs text-gray-500 uppercase tracking-widest mt-1" id="current-date">October 24, 2023 —
+                    Compliance Overview</p>
+            </div>
+            <button onclick="window.location.href='../luminasar_generate_sar_process/code.html'"
+                class="flex items-center gap-2 bg-black dark:bg-white text-white dark:text-black px-6 py-3 hover:bg-primary dark:hover:bg-primary transition-colors duration-200 rounded-sm group">
+                <span class="material-symbols-outlined text-lg group-hover:rotate-90 transition-transform">add</span>
+                <span class="text-xs font-bold tracking-widest uppercase">Generate New SAR</span>
+            </button>
+        </header>
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-8">
+            <!-- Stat Grid -->
+            <div
+                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[-1px] border border-gray-200 dark:border-gray-800 mb-12">
+                <!-- Card 1 -->
+                <div
+                    class="stat-card p-6 border-b border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-black group">
+                    <div class="flex justify-between items-start mb-4">
+                        <span
+                            class="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 group-hover:text-primary transition-colors">Total
+                            SARs Generated</span>
+                        <span
+                            class="material-symbols-outlined text-gray-300 dark:text-gray-700 text-lg">description</span>
+                    </div>
+                    <div class="font-serif text-5xl text-black dark:text-white" id="stat-total-sars">...</div>
+                    <div class="mt-4 flex items-center gap-2">
+                        <span class="text-xs font-mono text-green-600 dark:text-green-400">+12%</span>
+                        <span class="text-[10px] text-gray-400 uppercase">vs yesterday</span>
+                    </div>
+                </div>
+                <!-- Card 2 -->
+                <div
+                    class="stat-card p-6 border-b border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-black group">
+                    <div class="flex justify-between items-start mb-4">
+                        <span
+                            class="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 group-hover:text-primary transition-colors">Pending
+                            Review</span>
+                        <span
+                            class="material-symbols-outlined text-gray-300 dark:text-gray-700 text-lg">hourglass_empty</span>
+                    </div>
+                    <div class="font-serif text-5xl text-black dark:text-white" id="stat-pending-cases">...</div>
+                    <div class="mt-4 flex items-center gap-2">
+                        <span class="text-xs font-mono text-primary">-4</span>
+                        <span class="text-[10px] text-gray-400 uppercase">remaining</span>
+                    </div>
+                </div>
+                <!-- Card 3 -->
+                <div
+                    class="stat-card p-6 border-b md:border-r-0 lg:border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-black group relative overflow-hidden">
+                    <div
+                        class="absolute top-0 right-0 w-16 h-16 bg-red-50 dark:bg-red-900/10 rounded-bl-full -mr-8 -mt-8">
+                    </div>
+                    <div class="flex justify-between items-start mb-4 relative z-10">
+                        <span
+                            class="text-[10px] font-bold uppercase tracking-widest text-red-600 dark:text-red-400">High
+                            Risk Alerts</span>
+                        <span class="material-symbols-outlined text-red-200 dark:text-red-900 text-lg">warning</span>
+                    </div>
+                    <div class="font-serif text-5xl text-red-600 dark:text-red-500" id="stat-high-risk">...</div>
+                    <div class="mt-4 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                        <span class="text-[10px] text-red-600 dark:text-red-400 uppercase font-bold">Action
+                            Required</span>
+                    </div>
+                </div>
+                <!-- Card 4 -->
+                <div
+                    class="stat-card p-6 border-b border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-black group">
+                    <div class="flex justify-between items-start mb-4">
+                        <span
+                            class="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 group-hover:text-primary transition-colors">Total
+                            Customers</span>
+                        <span class="material-symbols-outlined text-gray-300 dark:text-gray-700 text-lg">person</span>
+                    </div>
+                    <div class="font-serif text-5xl text-black dark:text-white" id="stat-total-customers">...</div>
+                    <div class="mt-4 flex items-center gap-2">
+                        <span class="text-xs font-mono text-gray-600 dark:text-gray-400">Synced</span>
+                        <span class="text-[10px] text-gray-400 uppercase">from ERP</span>
+                    </div>
+                </div>
+                <!-- Card 5 -->
+                <div
+                    class="stat-card p-6 border-b border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-black group">
+                    <div class="flex justify-between items-start mb-4">
+                        <span
+                            class="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 group-hover:text-primary transition-colors">Avg.
+                            Gen Time</span>
+                        <span class="material-symbols-outlined text-gray-300 dark:text-gray-700 text-lg">schedule</span>
+                    </div>
+                    <div class="font-serif text-5xl text-black dark:text-white" id="stat-avg-time">...<span
+                            class="text-2xl ml-1 text-gray-400 font-sans font-light">s</span></div>
+                    <div class="mt-4 flex items-center gap-2">
+                        <span class="text-xs font-mono text-green-600 dark:text-green-400">Fast</span>
+                        <span class="text-[10px] text-gray-400 uppercase">optimized</span>
+                    </div>
+                </div>
+                <!-- Card 6 -->
+                <div
+                    class="stat-card p-6 border-b md:border-r-0 lg:border-r-0 border-gray-200 dark:border-gray-800 bg-white dark:bg-black group">
+                    <div class="flex justify-between items-start mb-4">
+                        <span
+                            class="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 group-hover:text-primary transition-colors">Cost
+                            Savings</span>
+                        <span class="material-symbols-outlined text-gray-300 dark:text-gray-700 text-lg">payments</span>
+                    </div>
+                    <div class="font-serif text-5xl text-black dark:text-white">₹<span
+                            id="stat-cost-savings">...</span><span
+                            class="text-2xl ml-1 text-gray-400 font-sans font-light">L</span></div>
+                    <div class="mt-4 flex items-center gap-2">
+                        <span class="text-xs font-mono text-primary">Cumulative</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Recent Activity Section -->
+            <div class="mb-8 flex items-end justify-between">
+                <div>
+                    <h3 class="font-serif text-2xl text-black dark:text-white">Recent SAR Cases</h3>
+                    <p class="text-xs text-gray-500 mt-1 font-mono uppercase">Live Stream • Updated <span
+                            id="last-updated">just now</span></p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="fetchData()"
+                        class="px-3 py-2 border border-gray-200 dark:border-gray-700 text-[10px] uppercase font-bold tracking-wider hover:bg-gray-50 dark:hover:bg-gray-900 text-black dark:text-white">Refresh</button>
+                    <button
+                        class="px-3 py-2 border border-gray-200 dark:border-gray-700 text-[10px] uppercase font-bold tracking-wider hover:bg-gray-50 dark:hover:bg-gray-900 text-black dark:text-white">Export
+                        CSV</button>
+                </div>
+            </div>
+            <div class="overflow-x-auto border border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-gray-200 dark:border-gray-800">
+                            <th
+                                class="py-4 px-6 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 w-32">
+                                Case ID</th>
+                            <th
+                                class="py-4 px-6 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                                Customer Name</th>
+                            <th
+                                class="py-4 px-6 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 text-right">
+                                Account</th>
+                            <th
+                                class="py-4 px-6 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 text-center w-32">
+                                Risk Score</th>
+                            <th
+                                class="py-4 px-6 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 w-40">
+                                Created At</th>
+                            <th
+                                class="py-4 px-6 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 text-right w-32">
+                                Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 dark:divide-gray-800 text-sm" id="cases-table-body">
+                        <!-- Dynamic Rows will be injected here -->
+                        <tr class="animate-pulse">
+                            <td colspan="6"
+                                class="py-12 text-center text-gray-400 font-mono text-xs uppercase tracking-widest">
+                                Loading encrypted data stream...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-4 flex justify-between items-center text-xs text-gray-500 font-mono">
+                <p id="showing-results">Showing 0 results</p>
+                <div class="flex gap-2">
+                    <button class="px-2 py-1 hover:text-black dark:hover:text-white transition-colors">Previous</button>
+                    <span class="text-gray-300 dark:text-gray-700">|</span>
+                    <button class="px-2 py-1 hover:text-black dark:hover:text-white transition-colors">Next</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+
+        async function fetchData() {
+            try {
+                // Update Date
+                const now = new Date();
+                document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', {
+                    month: 'long', day: 'numeric', year: 'numeric'
+                }) + ' — Compliance Overview';
+
+                // Fetch Stats
+                const statsResp = await fetch(`${API_BASE}/api/v1/sar/stats/overview`);
+                if (statsResp.ok) {
+                    const stats = await statsResp.json();
+                    document.getElementById('stat-total-sars').textContent = stats.total_sars;
+                    document.getElementById('stat-pending-cases').textContent = stats.pending_cases;
+                    document.getElementById('stat-high-risk').textContent = stats.high_risk_cases;
+                    document.getElementById('stat-total-customers').textContent = stats.total_customers;
+                    document.getElementById('stat-avg-time').innerHTML = `${stats.avg_generation_time}<span class="text-2xl ml-1 text-gray-400 font-sans font-light">s</span>`;
+                    document.getElementById('stat-cost-savings').textContent = stats.cost_savings_lakhs;
+                }
+
+                // Fetch Recent Cases
+                const casesResp = await fetch(`${API_BASE}/api/v1/sar/`);
+                if (casesResp.ok) {
+                    const cases = await casesResp.json();
+                    renderCases(cases);
+                }
+            } catch (error) {
+                console.error('Failed to fetch dashboard data:', error);
+            }
+        }
+
+        function renderCases(cases) {
+            const tbody = document.getElementById('cases-table-body');
+            tbody.innerHTML = '';
+
+            document.getElementById('showing-results').textContent = `Showing ${cases.length} of ${cases.length} results`;
+            document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+
+            if (cases.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-gray-400 font-mono text-xs uppercase tracking-widest">No cases found in database</td></tr>';
+                return;
+            }
+
+            cases.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.className = 'group hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors cursor-pointer';
+
+                // Redirect to editor if has narrative, otherwise to generate
+                tr.onclick = () => {
+                    const url = c.has_narrative
+                        ? `../luminasar_narrative_editor_&_audit_trail_1/code.html?case_id=${c.case_id}`
+                        : `../luminasar_generate_sar_process/code.html?case_id=${c.case_id}`;
+                    window.location.href = url;
+                };
+
+                const riskColor = c.risk_score >= 8 ? 'red' : c.risk_score >= 5 ? 'yellow' : 'green';
+                const riskLabel = c.risk_score ? `${c.risk_score}/10` : 'N/A';
+
+                const statusClass = c.status === 'approved' ? 'border-green-600 text-green-700' :
+                    c.status === 'generated' ? 'border-blue-600 text-blue-700' :
+                        'border-yellow-600 text-yellow-700';
+
+                tr.innerHTML = `
+                <td class="py-4 px-6 font-mono text-gray-500 dark:text-gray-400 text-xs">#${c.case_id.substring(0, 8)}</td>
+                <td class="py-4 px-6 font-medium text-black dark:text-white group-hover:text-primary transition-colors">${c.customer_name}</td>
+                <td class="py-4 px-6 font-mono text-gray-700 dark:text-gray-300 text-right">${c.customer_account}</td>
+                <td class="py-4 px-6 text-center">
+                    <div class="inline-block px-2 py-1 border border-${riskColor}-200 dark:border-${riskColor}-900 bg-${riskColor}-50 dark:bg-${riskColor}-900/20 text-${riskColor}-700 dark:text-${riskColor}-400 text-[10px] font-mono font-bold">${riskLabel}</div>
+                </td>
+                <td class="py-4 px-6 font-mono text-gray-500 dark:text-gray-400 text-xs">${new Date(c.created_at).toLocaleDateString()}</td>
+                <td class="py-4 px-6 text-right">
+                    <span class="inline-flex items-center px-2.5 py-1 border ${statusClass} text-[10px] font-bold uppercase tracking-wider">${c.status || 'Pending'}</span>
+                </td>
+            `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Initialize
+        fetchData();
+    </script>
+</body>
+
+</html>

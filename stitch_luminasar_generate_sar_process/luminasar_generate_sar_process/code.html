@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>LuminaSAR - Generate SAR</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Playfair+Display:wght@700;900&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff5100",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#23150f",
+                        "neutral-dark": "#181310",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "serif": ["Playfair Display", "serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Custom Styles for Swiss/Industrial Aesthetic */
+        .grid-bg {
+            background-size: 40px 40px;
+            background-image:
+                linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+        }
+
+        input[type="checkbox"]:checked {
+            background-color: #ff5100;
+            border-color: #ff5100;
+        }
+
+        /* Hide scrollbar for cleaner look */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-neutral-dark font-display min-h-screen flex flex-col grid-bg">
+    <!-- Top Navigation -->
+    <header
+        class="w-full bg-white border-b border-neutral-dark px-6 py-4 flex items-center justify-between z-10 sticky top-0">
+        <div class="flex items-center gap-3 cursor-pointer"
+            onclick="window.location.href='../luminasar_compliance_dashboard/code.html'">
+            <div class="w-6 h-6 bg-primary flex items-center justify-center text-white">
+                <span class="material-symbols-outlined text-sm">grid_view</span>
+            </div>
+            <h1 class="font-bold text-xl tracking-tight">LuminaSAR<span class="text-primary">.</span></h1>
+        </div>
+        <div class="flex items-center gap-8">
+            <div class="hidden md:flex items-center gap-6 font-mono text-xs uppercase tracking-wider text-gray-500">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    System Active
+                </div>
+                <span>v2.4.0-Stable</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-right hidden sm:block">
+                    <p class="text-sm font-bold leading-none">AGENT. 8492</p>
+                    <p class="text-xs font-mono text-gray-500 leading-none mt-1">COMPLIANCE DIV.</p>
+                </div>
+                <div class="h-10 w-10 bg-neutral-200 overflow-hidden border border-neutral-dark"
+                    data-alt="User avatar profile picture">
+                    <img alt="User Avatar" class="w-full h-full object-cover"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDi6yIqNGMZonET24WF3ixboLz4gQXeN7Px6cmW1Aybrdc2dWBTJx1jXMv2RQbuWkYbhNgWn2uym7uVeZwh722iRk2ZLHlTOiR_JwESPq1ewB4R8qwAH66AOS780qtc9wfw3mQUXfPQ9H0Gww4Qc0ymR0LXYVjq-qHJhAA7IDISPMImPk01UuHOItntY5i02SKEg3XGuX4szE1baLt9XQvVM6Nybo9AbZIvPrA8R7CMtmfi-MUg8NOR8efSVF-e891VcuMuVlPl6nk" />
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- Main Layout -->
+    <main class="flex-grow w-full max-w-[1440px] mx-auto p-6 md:p-12 lg:flex lg:gap-12 items-start">
+        <!-- Left Column: Form Section -->
+        <section
+            class="flex-1 w-full bg-white border border-neutral-dark p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-8 lg:mb-0 relative overflow-hidden group">
+            <!-- Decorative Corner Marker -->
+            <div class="absolute top-0 left-0 w-4 h-4 border-r border-b border-neutral-dark bg-primary"></div>
+            <div class="mb-10 border-b border-neutral-dark/10 pb-6">
+                <p class="font-mono text-primary text-sm mb-2 tracking-widest uppercase">Sequence 02: Parameter
+                    Initialization</p>
+                <h2 class="font-serif text-4xl md:text-5xl font-black text-neutral-dark tracking-tight leading-[1.1]">
+                    SUSPICIOUS ACTIVITY<br />REPORT GENERATOR
+                </h2>
+            </div>
+            <form class="flex flex-col gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <label class="flex flex-col gap-2 group">
+                        <span
+                            class="font-mono text-xs font-bold uppercase tracking-wider text-neutral-dark group-hover:text-primary transition-colors">Case
+                            Reference No.</span>
+                        <div class="relative">
+                            <input id="case_id"
+                                class="w-full h-14 bg-gray-50 border border-neutral-dark/30 focus:border-primary focus:ring-1 focus:ring-primary rounded-none font-mono text-sm px-4 placeholder:text-gray-400 transition-all"
+                                placeholder="REF-2023-X99" type="text" required />
+                            <span
+                                class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-400 text-lg">tag</span>
+                        </div>
+                    </label>
+                    <label class="flex flex-col gap-2 group">
+                        <span
+                            class="font-mono text-xs font-bold uppercase tracking-wider text-neutral-dark group-hover:text-primary transition-colors">Date
+                            of Occurrence</span>
+                        <div class="relative">
+                            <input
+                                class="w-full h-14 bg-gray-50 border border-neutral-dark/30 focus:border-primary focus:ring-1 focus:ring-primary rounded-none font-mono text-sm px-4 text-neutral-dark transition-all"
+                                type="date" />
+                        </div>
+                    </label>
+                </div>
+                <label class="flex flex-col gap-2 group">
+                    <span
+                        class="font-mono text-xs font-bold uppercase tracking-wider text-neutral-dark group-hover:text-primary transition-colors">Primary
+                        Subject</span>
+                    <div class="relative">
+                        <input
+                            class="w-full h-14 bg-gray-50 border border-neutral-dark/30 focus:border-primary focus:ring-1 focus:ring-primary rounded-none font-mono text-sm px-4 placeholder:text-gray-400 transition-all uppercase"
+                            placeholder="ENTER SUBJECT FULL NAME" type="text" />
+                        <span
+                            class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-400 text-lg">person_search</span>
+                    </div>
+                </label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <label class="flex flex-col gap-2 group">
+                        <span
+                            class="font-mono text-xs font-bold uppercase tracking-wider text-neutral-dark group-hover:text-primary transition-colors">Risk
+                            Level</span>
+                        <div class="relative">
+                            <select
+                                class="w-full h-14 bg-gray-50 border border-neutral-dark/30 focus:border-primary focus:ring-1 focus:ring-primary rounded-none font-mono text-sm px-4 text-neutral-dark transition-all appearance-none">
+                                <option>LEVEL 1 - LOW</option>
+                                <option>LEVEL 2 - MODERATE</option>
+                                <option selected="">LEVEL 3 - HIGH</option>
+                                <option>LEVEL 4 - CRITICAL</option>
+                            </select>
+                            <span
+                                class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-400 pointer-events-none">expand_more</span>
+                        </div>
+                    </label>
+                    <label class="flex flex-col gap-2 group">
+                        <span
+                            class="font-mono text-xs font-bold uppercase tracking-wider text-neutral-dark group-hover:text-primary transition-colors">Detection
+                            Method</span>
+                        <div class="relative">
+                            <select
+                                class="w-full h-14 bg-gray-50 border border-neutral-dark/30 focus:border-primary focus:ring-1 focus:ring-primary rounded-none font-mono text-sm px-4 text-neutral-dark transition-all appearance-none">
+                                <option>TRANSACTION MONITORING</option>
+                                <option>REFERRAL</option>
+                                <option>LAW ENFORCEMENT INQUIRY</option>
+                                <option>AI PREDICTIVE MODEL</option>
+                            </select>
+                            <span
+                                class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-400 pointer-events-none">expand_more</span>
+                        </div>
+                    </label>
+                </div>
+                <label class="flex flex-col gap-2 group">
+                    <span
+                        class="font-mono text-xs font-bold uppercase tracking-wider text-neutral-dark group-hover:text-primary transition-colors">Narrative
+                        Context (Optional)</span>
+                    <textarea
+                        class="w-full bg-gray-50 border border-neutral-dark/30 focus:border-primary focus:ring-1 focus:ring-primary rounded-none font-mono text-sm p-4 placeholder:text-gray-400 transition-all uppercase resize-none"
+                        placeholder="BRIEF DESCRIPTION OF ACTIVITY..." rows="4"></textarea>
+                </label>
+                <div class="pt-6 mt-4 border-t border-dashed border-neutral-dark/20">
+                    <button id="submit-btn"
+                        class="w-full h-16 bg-neutral-dark hover:bg-primary text-white font-mono font-bold text-lg uppercase tracking-widest transition-colors duration-300 flex items-center justify-center gap-3 group/btn"
+                        type="submit">
+                        <span>Initiate Sequence</span>
+                        <span
+                            class="material-symbols-outlined group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                    </button>
+                    <p class="font-mono text-[10px] text-gray-400 mt-3 text-center">ACTION IS LOGGED AND IRREVERSIBLE
+                        ONCE STARTED.</p>
+                </div>
+            </form>
+        </section>
+        <!-- Right Column: Progress & Status -->
+        <aside class="w-full lg:w-[420px] shrink-0 flex flex-col gap-6">
+            <!-- Timer Card -->
+            <div
+                class="bg-neutral-dark text-white p-6 border-l-4 border-primary shadow-[4px_4px_0px_0px_rgba(255,81,0,0.2)]">
+                <div class="flex justify-between items-start mb-4">
+                    <h3 class="font-mono text-xs text-gray-400 uppercase tracking-widest">Session Elapsed</h3>
+                    <span class="animate-pulse w-2 h-2 bg-primary rounded-full"></span>
+                </div>
+                <div class="font-mono text-6xl font-bold tracking-tighter tabular-nums text-white" id="timer">
+                    00:00:00
+                </div>
+                <div class="mt-4 pt-4 border-t border-white/10 flex justify-between items-center">
+                    <span class="font-mono text-xs text-primary">STATUS: RECORDING</span>
+                    <span class="material-symbols-outlined text-white/50 text-sm">timelapse</span>
+                </div>
+            </div>
+            <!-- Progress Tracker -->
+            <div class="bg-white border border-neutral-dark p-6 relative">
+                <!-- Watermark -->
+                <div class="absolute right-0 bottom-0 opacity-5 pointer-events-none">
+                    <span class="material-symbols-outlined text-9xl">memory</span>
+                </div>
+                <div class="flex items-center justify-between mb-8 border-b border-black pb-4">
+                    <h3 class="font-serif text-xl font-bold">Process Tracker</h3>
+                    <span class="font-mono text-xs bg-gray-100 px-2 py-1">ID: P-9921</span>
+                </div>
+                <div class="relative pl-2">
+                    <!-- Vertical Line -->
+                    <div class="absolute left-[11px] top-2 bottom-4 w-[2px] bg-neutral-dark/20 h-[90%]"></div>
+                    <!-- Steps -->
+                    <div class="space-y-8 relative">
+                        <!-- Step 1 -->
+                        <div id="step-1" class="flex gap-4 group opacity-50">
+                            <div
+                                class="step-icon relative z-10 w-6 h-6 shrink-0 bg-white border-2 border-neutral-dark/30 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-white text-sm font-bold hidden">check</span>
+                            </div>
+                            <div class="flex flex-col -mt-1">
+                                <span class="font-mono text-xs text-gray-400 uppercase tracking-wider mb-1">Step
+                                    01</span>
+                                <span class="font-display font-bold text-neutral-dark step-text">Secure Database
+                                    Connection</span>
+                            </div>
+                        </div>
+                        <!-- Step 2 -->
+                        <div id="step-2" class="flex gap-4 group opacity-50">
+                            <div
+                                class="step-icon relative z-10 w-6 h-6 shrink-0 bg-white border-2 border-neutral-dark/30 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-white text-sm font-bold hidden">check</span>
+                            </div>
+                            <div class="flex flex-col -mt-1">
+                                <span class="font-mono text-xs text-gray-400 uppercase tracking-wider mb-1">Step
+                                    02</span>
+                                <span class="font-display font-bold text-neutral-dark step-text">Retrieve Transaction
+                                    History</span>
+                            </div>
+                        </div>
+                        <!-- Step 3 -->
+                        <div id="step-3" class="flex gap-4 group opacity-50">
+                            <div
+                                class="step-icon relative z-10 w-6 h-6 shrink-0 bg-white border-2 border-neutral-dark/30 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-white text-sm font-bold hidden">check</span>
+                            </div>
+                            <div class="flex flex-col -mt-1">
+                                <span class="font-mono text-xs text-gray-400 uppercase tracking-wider mb-1">Step
+                                    03</span>
+                                <span class="font-display font-bold text-neutral-dark step-text">AI Pattern
+                                    Recognition</span>
+                            </div>
+                        </div>
+                        <!-- Step 4 -->
+                        <div id="step-4" class="flex gap-4 group opacity-50">
+                            <div
+                                class="step-icon relative z-10 w-6 h-6 shrink-0 bg-white border-2 border-neutral-dark/30 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-white text-sm font-bold hidden">check</span>
+                            </div>
+                            <div class="flex flex-col -mt-1">
+                                <span class="font-mono text-xs text-gray-400 uppercase tracking-wider mb-1">Step
+                                    04</span>
+                                <span class="font-display font-bold text-neutral-dark step-text">Narrative
+                                    Drafting</span>
+                            </div>
+                        </div>
+                        <!-- Step 5 -->
+                        <div id="step-5" class="flex gap-4 group opacity-50">
+                            <div
+                                class="step-icon relative z-10 w-6 h-6 shrink-0 bg-white border-2 border-neutral-dark/30 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-white text-sm font-bold hidden">check</span>
+                            </div>
+                            <div class="flex flex-col -mt-1">
+                                <span class="font-mono text-xs text-gray-400 uppercase tracking-wider mb-1">Step
+                                    05</span>
+                                <span class="font-display font-bold text-neutral-dark step-text">Final Review &
+                                    Export</span>
+                            </div>
+                        </div>
+                    </div>
+                    <script>
+                        const API_BASE = 'http://localhost:8000';
+                        let startTime = Date.now();
+                        let isGenerating = false;
+
+                        // Timer Logic
+                        setInterval(() => {
+                            const diff = Date.now() - startTime;
+                            const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+                            const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+                            const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+                            document.getElementById('timer').textContent = `${h}:${m}:${s}`;
+                        }, 1000);
+
+                        // Initial Setup
+                        window.onload = () => {
+                            const urlParams = new URLSearchParams(window.location.search);
+                            const caseIdParam = urlParams.get('case_id');
+                            if (caseIdParam) {
+                                document.getElementById('case_id').value = caseIdParam;
+                            }
+                            checkHealth();
+
+                            // Wire form properly
+                            document.querySelector('form').onsubmit = (e) => {
+                                e.preventDefault();
+                                initiateSequence();
+                            };
+                        };
+
+                        async function checkHealth() {
+                            try {
+                                const resp = await fetch(`${API_BASE}/health`);
+                                const data = await resp.json();
+                                if (data.status === 'healthy') {
+                                    document.getElementById('sys-status').textContent = 'CONNECTED';
+                                    document.getElementById('sys-status').classList.add('text-black');
+                                }
+                            } catch (e) {
+                                document.getElementById('sys-status').textContent = 'OFFLINE';
+                                document.getElementById('sys-status').classList.add('text-red-600');
+                            }
+                        }
+
+                        async function initiateSequence() {
+                            if (isGenerating) return;
+
+                            const caseId = document.getElementById('case_id').value;
+                            const submitBtn = document.getElementById('submit-btn');
+                            const submitText = submitBtn.querySelector('span');
+
+                            isGenerating = true;
+                            submitBtn.disabled = true;
+                            submitText.textContent = 'Processing...';
+
+                            try {
+                                // Start process simulation
+                                updateStep(1, 'active');
+
+                                const response = await fetch(`${API_BASE}/api/v1/sar/generate`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        case_id: caseId,
+                                        force_regenerate: false
+                                    })
+                                });
+
+                                if (!response.ok) throw new Error('Generation failed');
+
+                                const data = await response.json();
+
+                                await sleep(1000); updateStep(1, 'completed'); updateStep(2, 'active');
+                                await sleep(1500); updateStep(2, 'completed'); updateStep(3, 'active');
+                                await sleep(1500); updateStep(3, 'completed'); updateStep(4, 'active');
+                                await sleep(2000); updateStep(4, 'completed'); updateStep(5, 'active');
+                                await sleep(1000); updateStep(5, 'completed');
+
+                                setTimeout(() => {
+                                    window.location.href = `../luminasar_narrative_editor_&_audit_trail_1/code.html?case_id=${caseId}&narrative_id=${data.narrative_id}`;
+                                }, 800);
+
+                            } catch (error) {
+                                alert('Error generating SAR: ' + error.message);
+                                isGenerating = false;
+                                submitBtn.disabled = false;
+                                submitText.textContent = 'Retry Sequence';
+                            }
+                        }
+
+                        function updateStep(stepNum, status) {
+                            const stepEl = document.getElementById(`step-${stepNum}`);
+                            const iconContainer = stepEl.querySelector('.step-icon');
+                            const checkIcon = iconContainer.querySelector('span');
+                            const labelText = stepEl.querySelector('.step-text');
+
+                            if (status === 'active') {
+                                stepEl.classList.remove('opacity-50');
+                                stepEl.classList.add('opacity-100');
+                                iconContainer.classList.remove('border-neutral-dark/30');
+                                iconContainer.classList.add('border-primary', 'shadow-[0_0_10px_rgba(255,81,0,0.4)]');
+                                labelText.classList.add('text-primary');
+                            } else if (status === 'completed') {
+                                iconContainer.classList.remove('border-primary', 'shadow-[0_0_10px_rgba(255,81,0,0.4)]');
+                                iconContainer.classList.add('bg-neutral-dark', 'border-neutral-dark');
+                                checkIcon.classList.remove('hidden');
+                                labelText.classList.add('line-through', 'text-neutral-dark/50');
+                                labelText.classList.remove('text-primary');
+                            }
+                        }
+
+                        function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+                    </script>
+                </div>
+            </div>
+            <!-- Quick Stats / System Info -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white border border-neutral-dark p-4 flex flex-col justify-between h-24">
+                    <span class="material-symbols-outlined text-neutral-dark text-xl">memory</span>
+                    <div>
+                        <p class="font-mono text-[10px] text-gray-500 uppercase">System Load</p>
+                        <p class="font-mono text-xl font-bold">12%</p>
+                    </div>
+                </div>
+                <div class="bg-white border border-neutral-dark p-4 flex flex-col justify-between h-24">
+                    <span class="material-symbols-outlined text-neutral-dark text-xl">database</span>
+                    <div>
+                        <p class="font-mono text-[10px] text-gray-500 uppercase">Data Sources</p>
+                        <p class="font-mono text-xl font-bold" id="sys-status">CONNECTED</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LuminaSAR - Integrated Frontend</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+</head>
+
+<body class="bg-[#23150f] text-white min-h-screen flex items-center justify-center p-6">
+    <div class="max-w-4xl w-full">
+        <div class="mb-12 text-center">
+            <div class="inline-flex items-center gap-3 mb-4">
+                <div class="size-10 bg-[#ff5100] flex items-center justify-center text-white">
+                    <span class="material-symbols-outlined text-2xl">grid_view</span>
+                </div>
+                <h1 class="text-4xl font-bold tracking-tight">LuminaSAR</h1>
+            </div>
+            <p class="text-slate-400 text-lg">Integrated Financial Compliance & Narrative Generation Suite</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Dashboard -->
+            <a href="luminasar_compliance_dashboard/code.html"
+                class="group bg-white/5 border border-white/10 p-6 hover:border-[#ff5100]/50 transition-all hover:bg-white/10">
+                <div class="flex items-start justify-between mb-4">
+                    <span class="material-symbols-outlined text-3xl text-[#ff5100]">dashboard</span>
+                </div>
+                <h2 class="text-xl font-bold mb-2">Compliance Dashboard</h2>
+                <p class="text-slate-400 text-sm mb-4">Overview of SAR statistics, recent cases, and system health
+                    monitoring.</p>
+                <div class="mono text-[10px] text-[#ff5100]">/dashboard</div>
+            </a>
+
+            <!-- Generate SAR -->
+            <a href="luminasar_generate_sar_process/code.html"
+                class="group bg-white/5 border border-white/10 p-6 hover:border-[#ff5100]/50 transition-all hover:bg-white/10">
+                <div class="flex items-start justify-between mb-4">
+                    <span class="material-symbols-outlined text-3xl text-[#ff5100]">bolt</span>
+                </div>
+                <h2 class="text-xl font-bold mb-2">Generate SAR</h2>
+                <p class="text-slate-400 text-sm mb-4">Triggers the AI generation process with real-time progress
+                    tracking.</p>
+                <div class="mono text-[10px] text-[#ff5100]">/generate-sar</div>
+            </a>
+
+            <!-- Editor v1 -->
+            <a href="luminasar_narrative_editor_&_audit_trail_1/code.html"
+                class="group bg-white/5 border border-white/10 p-6 hover:border-[#ff5100]/50 transition-all hover:bg-white/10">
+                <div class="flex items-start justify-between mb-4">
+                    <span class="material-symbols-outlined text-3xl text-[#ff5100]">edit_note</span>
+                </div>
+                <h2 class="text-xl font-bold mb-2">Narrative Editor v1</h2>
+                <p class="text-slate-400 text-sm mb-4">Classic layout for reviewing narratives and the explainable audit
+                    trail.</p>
+                <div class="mono text-[10px] text-[#ff5100]">/editor/v1</div>
+            </a>
+
+            <!-- Editor v2 -->
+            <a href="luminasar_narrative_editor_&_audit_trail_2/code.html"
+                class="group bg-white/5 border border-white/10 p-6 hover:border-[#ff5100]/50 transition-all hover:bg-white/10">
+                <div class="flex items-start justify-between mb-4">
+                    <span class="material-symbols-outlined text-3xl text-[#ff5100]">monitoring</span>
+                </div>
+                <h2 class="text-xl font-bold mb-2">Narrative Editor v2</h2>
+                <p class="text-slate-400 text-sm mb-4">Enhanced layout with funds flow visualization and detailed audit
+                    telemetry.</p>
+                <div class="mono text-[10px] text-[#ff5100]">/editor/v2</div>
+            </a>
+        </div>
+
+        <div class="mt-12 pt-8 border-t border-white/10 flex items-center justify-between text-xs mono text-slate-500">
+            <div class="flex items-center gap-4">
+                <span>FRONTEND_PORT: 3000</span>
+                <span>BACKEND_PORT: 8000</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="size-2 rounded-full bg-green-500"></span>
+                API_READY
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

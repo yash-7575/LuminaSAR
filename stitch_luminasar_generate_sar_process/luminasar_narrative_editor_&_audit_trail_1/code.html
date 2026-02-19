@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>LuminaSAR Narrative Editor &amp; Audit Trail</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Material Symbols -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff5100",
+                        "background-light": "#ffffff",
+                        "background-dark": "#23150f",
+                        "neutral-surface": "#f4f4f4",
+                        "highlighter": "#fff83b",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "serif": ["Merriweather", "serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0px", // Enforcing 0px radius as requested
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px", // Only for circular avatars if needed
+                    },
+                    boxShadow: {
+                        "sharp": "4px 4px 0px 0px rgba(0,0,0,0.1)",
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for the code panel feel */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .code-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .code-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .code-scroll::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+        }
+
+        .code-scroll::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        /* Marker highlight effect */
+        .marker-highlight {
+            background: linear-gradient(100deg, rgba(255, 248, 59, 0) 0%, rgba(255, 248, 59, 0.5) 3%, rgba(255, 248, 59, 0.7) 10%, rgba(255, 248, 59, 0.4) 95%, rgba(255, 248, 59, 0) 100%);
+            padding: 0 0.2em;
+            margin: 0 -0.2em;
+            border-radius: 2px;
+            box-decoration-break: clone;
+            -webkit-box-decoration-break: clone;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-900 font-display min-h-screen flex flex-col overflow-hidden">
+    <!-- Top Navigation -->
+    <header
+        class="flex-none h-16 border-b border-neutral-200 bg-white dark:bg-background-dark dark:border-white/10 flex items-center justify-between px-6 z-20">
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2 text-black dark:text-white cursor-pointer"
+                onclick="window.location.href='../luminasar_compliance_dashboard/code.html'">
+                <div class="size-6 bg-primary flex items-center justify-center text-white">
+                    <span class="material-symbols-outlined text-lg">grid_view</span>
+                </div>
+                <h1 class="font-bold text-lg tracking-tight">LuminaSAR</h1>
+            </div>
+            <div class="h-6 w-px bg-neutral-300 dark:bg-white/20"></div>
+            <!-- Breadcrumbs -->
+            <nav class="flex items-center gap-2 font-mono text-xs font-medium text-slate-500 dark:text-slate-400">
+                <a class="hover:text-primary transition-colors cursor-pointer"
+                    onclick="window.location.href='../luminasar_compliance_dashboard/code.html'">CASES</a>
+                <span>/</span>
+                <a class="hover:text-primary transition-colors cursor-pointer" id="breadcrumb-case-id">SAR-9921</a>
+                <span>/</span>
+                <span class="text-black dark:text-white bg-neutral-100 dark:bg-white/10 px-1">EDITOR</span>
+            </nav>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 text-sm font-medium">
+                <span class="size-2 rounded-full bg-green-500 animate-pulse"></span>
+                <span class="text-slate-500 dark:text-slate-400 font-mono">LIVE_SYNC</span>
+            </div>
+            <button onclick="saveDraft()"
+                class="flex items-center justify-center h-9 px-6 bg-neutral-100 hover:bg-neutral-200 text-slate-900 text-xs font-bold uppercase tracking-widest transition-colors dark:bg-white/10 dark:text-white dark:hover:bg-white/20">
+                Save Draft
+            </button>
+            <button id="finalize-btn" onclick="finalizeSAR()"
+                class="flex items-center justify-center h-9 px-6 bg-primary hover:bg-primary/90 text-white text-xs font-bold uppercase tracking-widest shadow-sharp transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">
+                Finalize
+            </button>
+            <div class="h-9 w-9 bg-neutral-200 dark:bg-white/10 overflow-hidden" data-alt="User Avatar pattern"
+                style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCFJppkvM36QMx0lOQsBOp1HeRmlxNUVM1p1mPB0u5FCyR2oOnWiKamXSXggwwNHkGZRDO2YpvMEURMcbUhdqDqCkBGgByJTPdAzWSoe_iiv2eoqY7kO75SBJUmgkAhqvubnbrEYf3Js87hqly44QdUGOrMVoSZUxWpaSjpafO29zWa6eXkHq9N3u5_uDrZCDOE6iSgGKpLdWZRWxa8ENYnlHfoB3hRittCI5sqzLqkqmp-2v6HLbtJU_M0EqcVWkRunosJNuCr6i0');">
+            </div>
+        </div>
+    </header>
+    <!-- Main Content Area - Split Screen -->
+    <main class="flex-1 flex overflow-hidden">
+        <!-- Left Panel: Narrative Viewer -->
+        <section class="flex-1 flex flex-col bg-white dark:bg-background-dark min-w-[400px] overflow-hidden relative">
+            <!-- Toolbar -->
+            <div
+                class="flex-none h-12 border-b border-neutral-100 dark:border-white/5 flex items-center justify-between px-8 bg-white dark:bg-background-dark z-10">
+                <div class="flex items-center gap-1">
+                    <button
+                        class="p-1.5 hover:bg-neutral-100 text-slate-400 hover:text-slate-900 transition-colors dark:hover:bg-white/10 dark:text-slate-500 dark:hover:text-white"
+                        title="Highlight">
+                        <span class="material-symbols-outlined text-[20px]">ink_highlighter</span>
+                    </button>
+                    <button
+                        class="p-1.5 hover:bg-neutral-100 text-slate-400 hover:text-slate-900 transition-colors dark:hover:bg-white/10 dark:text-slate-500 dark:hover:text-white"
+                        title="Comment">
+                        <span class="material-symbols-outlined text-[20px]">chat_bubble</span>
+                    </button>
+                    <div class="w-px h-4 bg-neutral-200 dark:bg-white/10 mx-2"></div>
+                    <button
+                        class="p-1.5 hover:bg-neutral-100 text-slate-400 hover:text-slate-900 transition-colors dark:hover:bg-white/10 dark:text-slate-500 dark:hover:text-white"
+                        title="Undo">
+                        <span class="material-symbols-outlined text-[20px]">undo</span>
+                    </button>
+                    <button
+                        class="p-1.5 hover:bg-neutral-100 text-slate-400 hover:text-slate-900 transition-colors dark:hover:bg-white/10 dark:text-slate-500 dark:hover:text-white"
+                        title="Redo">
+                        <span class="material-symbols-outlined text-[20px]">redo</span>
+                    </button>
+                </div>
+                <div class="text-xs font-mono text-slate-400">
+                    LAST_EDIT: 2 MIN AGO
+                </div>
+            </div>
+            <!-- Document Scroll Area -->
+            <div class="flex-1 overflow-y-auto p-12 lg:px-20 xl:px-32 scrollbar-hide">
+                <div class="max-w-[720px] mx-auto pb-20">
+                    <div class="mb-10 pb-6 border-b border-neutral-200 dark:border-white/10">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold tracking-widest text-primary uppercase"
+                                id="document-confidential">Confidential</span>
+                            <span class="text-xs font-mono text-slate-400" id="document-id">DOC-ID: ...</span>
+                        </div>
+                        <h2 class="font-display text-3xl font-bold text-slate-900 dark:text-white tracking-tight"
+                            id="document-title">SAR Narrative Generator</h2>
+                    </div>
+                    <article id="narrative-content"
+                        class="font-serif text-[17px] leading-[1.8] text-slate-800 dark:text-slate-200 space-y-6">
+                        Loading narrative from encrypted stream...
+                    </article>
+                </div>
+            </div>
+        </section>
+        <!-- Vertical Divider -->
+        <div class="w-px bg-neutral-200 dark:bg-white/10 flex-none z-20 shadow-[1px_0_6px_rgba(0,0,0,0.05)]"></div>
+        <!-- Right Panel: Audit Trail -->
+        <section
+            class="w-[45%] flex flex-col bg-neutral-50 dark:bg-[#1a1a1a] border-l border-neutral-200 dark:border-white/5 relative">
+            <!-- Audit Header -->
+            <div
+                class="flex-none h-12 border-b border-neutral-200 dark:border-white/10 flex items-center justify-between px-4 bg-neutral-50 dark:bg-[#1a1a1a]">
+                <div class="flex items-center gap-2 text-slate-500 font-mono text-xs font-bold uppercase">
+                    <span class="material-symbols-outlined text-sm">terminal</span>
+                    AUDIT_TRAIL.log
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="flex h-2 w-2 rounded-full bg-primary"></span>
+                    <span class="text-[10px] font-mono text-slate-400">STREAMING</span>
+                </div>
+            </div>
+            <!-- Filter Bar -->
+            <div class="flex-none p-3 border-b border-neutral-200 dark:border-white/10 bg-white dark:bg-white/5">
+                <div class="relative flex items-center w-full">
+                    <span class="material-symbols-outlined absolute left-3 text-slate-400 text-sm">filter_list</span>
+                    <input
+                        class="w-full bg-neutral-100 dark:bg-black/20 border-none text-xs font-mono py-2 pl-9 pr-4 text-slate-700 dark:text-slate-300 focus:ring-1 focus:ring-primary placeholder:text-slate-400"
+                        placeholder="Filter by Hash, Event ID, or User..." type="text" />
+                </div>
+            </div>
+            <!-- Scrollable Log Area -->
+            <div class="flex-1 overflow-y-auto code-scroll p-4 space-y-1" id="audit-log-container">
+                <!-- Dynamic Log Entries Inject Here -->
+                <div class="animate-pulse text-xs font-mono text-slate-400 p-4">CONNECTING TO AUDIT_STREAM...</div>
+            </div>
+            <!-- Hash Visualizer Footer -->
+            <div class="flex-none p-4 border-t border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-black/40">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] font-mono font-bold uppercase text-slate-500">Integrity Check</span>
+                    <span class="text-[10px] font-mono text-green-600 font-bold flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[12px]">verified_user</span>
+                        VALID
+                    </span>
+                </div>
+                <div class="flex gap-1 h-3">
+                    <div class="flex-1 bg-green-500/80 rounded-[1px]" title="Block 1 Verified"></div>
+                    <div class="flex-1 bg-green-500/80 rounded-[1px]" title="Block 2 Verified"></div>
+                    <div class="flex-1 bg-green-500/80 rounded-[1px]" title="Block 3 Verified"></div>
+                    <div class="flex-1 bg-primary rounded-[1px] animate-pulse" title="Block 4 Pending"></div>
+                    <div class="flex-1 bg-neutral-300 dark:bg-white/10 rounded-[1px]"></div>
+                </div>
+                <div class="mt-2 text-[10px] font-mono text-slate-400 truncate">
+                    ROOT: 0x8a92b...c3d1e
+                </div>
+            </div>
+        </section>
+    </main>
+    <!-- Status Bar -->
+    <footer class="h-8 bg-neutral-900 text-white flex items-center justify-between px-4 text-xs font-mono z-30">
+        <div class="flex items-center gap-6">
+            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-500"></span>
+                SYSTEM_ONLINE</span>
+            <span class="opacity-70">LATENCY: 24ms</span>
+            <span class="opacity-70">REGION: US-EAST-1</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="opacity-70">Ln 42, Col 18</span>
+            <span class="bg-white/10 px-2 py-0.5 rounded-[1px]">UTF-8</span>
+        </div>
+    </footer>
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let narrativeId = '';
+        let caseId = '';
+
+        window.onload = async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            narrativeId = urlParams.get('narrative_id');
+            caseId = urlParams.get('case_id');
+
+            if (!narrativeId && caseId) {
+                await findNarrativeByCase(caseId);
+            }
+
+            if (narrativeId) {
+                loadNarrative(narrativeId);
+                loadAuditTrail(narrativeId);
+            } else {
+                const article = document.getElementById('narrative-content');
+                if (article) article.innerHTML = '<div class="text-red-500 p-8">Error: Narrative ID not found in URL parameters.</div>';
+            }
+        };
+
+        async function findNarrativeByCase(cid) {
+            try {
+                const resp = await fetch(`${API_BASE}/api/v1/sar/${cid}`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    narrativeId = data.narrative_id || data.id;
+                }
+            } catch (e) {
+                console.error('Failed to find narrative:', e);
+            }
+        }
+
+        async function loadNarrative(nid) {
+            try {
+                const resp = await fetch(`${API_BASE}/api/v1/sar/${nid}`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    const bCase = document.getElementById('breadcrumb-case-id');
+                    if (bCase) bCase.textContent = data.case_id;
+
+                    const dId = document.getElementById('document-id');
+                    if (dId) dId.textContent = `DOC-ID: ${data.narrative_id.substring(0, 8).toUpperCase()}`;
+
+                    const dTitle = document.getElementById('document-title');
+                    if (dTitle) dTitle.textContent = `SAR Narrative: Case ${data.case_id}`;
+
+                    const article = document.getElementById('narrative-content');
+                    if (article) {
+                        article.innerHTML = '';
+                        const paragraphs = data.narrative_text.split('\n\n');
+                        paragraphs.forEach(p => {
+                            if (!p.trim()) return;
+                            const pEl = document.createElement('p');
+                            if (/^[IVX]+\.\s/.test(p)) {
+                                const parts = p.split('\n');
+                                const title = parts[0];
+                                const rest = parts.slice(1).join('\n');
+                                pEl.innerHTML = `<span class="font-bold text-slate-900 dark:text-white">${title}</span><br/>${rest}`;
+                            } else {
+                                pEl.textContent = p;
+                            }
+                            article.appendChild(pEl);
+                        });
+                    }
+                }
+            } catch (e) {
+                console.error('Error loading narrative:', e);
+            }
+        }
+
+        async function loadAuditTrail(nid) {
+            try {
+                const resp = await fetch(`${API_BASE}/api/v1/sar/${nid}/audit`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    renderAuditLog(data.steps);
+                }
+            } catch (e) {
+                console.error('Error loading audit trail:', e);
+            }
+        }
+
+        function renderAuditLog(steps) {
+            const container = document.getElementById('audit-log-container');
+            if (!container) return;
+
+            container.innerHTML = '<div class="absolute left-[29px] top-4 bottom-0 w-px bg-neutral-300 dark:bg-white/10 z-0"></div>';
+
+            steps.forEach((step, idx) => {
+                const entry = document.createElement('div');
+                entry.className = 'relative group pl-8 py-2 z-10';
+
+                const isCurrent = idx === steps.length - 1;
+                const borderClass = isCurrent ? 'border-l-4 border-l-primary' : '';
+                const tagClass = isCurrent ? 'bg-primary text-white' : 'bg-neutral-100 dark:bg-white/10 text-slate-400';
+
+                entry.innerHTML = `
+                    <div class="absolute left-[21px] top-5 w-[17px] h-px bg-neutral-300 dark:bg-white/20"></div>
+                    <div class="absolute left-2 top-3 w-4 h-4 bg-neutral-200 border border-neutral-400 rounded-none flex items-center justify-center text-[8px] font-mono z-20 dark:bg-white/10 dark:border-white/30 text-slate-600 dark:text-slate-300">${(idx + 1).toString().padStart(2, '0')}</div>
+                    <div class="bg-white border border-neutral-200 dark:bg-black/20 dark:border-white/10 hover:border-primary/50 transition-colors ${borderClass}">
+                        <details class="group/accordion" ${isCurrent ? 'open' : ''}>
+                            <summary class="flex items-center justify-between p-2 cursor-pointer select-none bg-neutral-50/50 dark:bg-white/5">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-sm text-slate-400 group-open/accordion:rotate-90 transition-transform">chevron_right</span>
+                                    <span class="font-mono text-xs ${isCurrent ? 'text-primary' : 'text-slate-800 dark:text-white'} font-bold">${step.step_name}</span>
+                                    <span class="font-mono text-[10px] text-slate-400">${new Date(step.timestamp).toLocaleTimeString()}</span>
+                                </div>
+                                <div class="font-mono text-[10px] ${tagClass} px-1">${isCurrent ? 'CURRENT' : 'HASH: ' + step.hash.substring(0, 4) + '...'}</div>
+                            </summary>
+                            <div class="p-3 border-t border-neutral-100 dark:border-white/5 font-mono text-[11px] leading-relaxed text-slate-600 dark:text-slate-400">
+                                <pre class="bg-transparent border-none p-0 overflow-visible whitespace-pre-wrap">${JSON.stringify(step.details, null, 2)}</pre>
+                            </div>
+                        </details>
+                    </div>
+                `;
+                container.appendChild(entry);
+            });
+        }
+
+        async function finalizeSAR() {
+            if (!narrativeId) return;
+            const btn = document.getElementById('finalize-btn');
+            btn.disabled = true;
+            btn.textContent = 'FINALIZING...';
+
+            try {
+                const resp = await fetch(`${API_BASE}/api/v1/sar/${narrativeId}/approve`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        analyst_name: 'Compliance Officer',
+                        notes: 'Approved via Narrative Editor v1'
+                    })
+                });
+                if (resp.ok) {
+                    alert('SAR finalized successfully!');
+                    window.location.href = '../luminasar_compliance_dashboard/code.html';
+                }
+            } catch (error) {
+                alert('Failed to finalize: ' + error.message);
+                btn.disabled = false;
+                btn.textContent = 'Finalize';
+            }
+        }
+
+        function saveDraft() {
+            alert('Draft saved to local cache.');
+        }
+    </script>
+</body>
+
+</html>
